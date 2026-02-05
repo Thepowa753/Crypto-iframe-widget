@@ -82,8 +82,8 @@
         }
 
         .crypto-logo {
-            width: min(80px, 20vw);
-            height: min(80px, 20vw);
+            width: min(40px, 20vw);
+            height: min(40px, 20vw);
             margin: 0 auto 20px;
             border-radius: 50%;
             display: flex;
@@ -262,7 +262,7 @@
             const params = new URLSearchParams(window.location.search);
             const crypto = (params.get('crypto') || 'BTC').toUpperCase();
             const fiat = (params.get('fiat') || 'EUR').toUpperCase();
-            const theme = (params.get('theme') || 'light').toLowerCase();
+            const theme = (params.get('theme') || 'dark').toLowerCase();
             const width = parseInt(params.get('width')) || 300;
             const height = parseInt(params.get('height')) || 200;
             const quantity = parseFloat(params.get('quantity')) || 0;
@@ -270,7 +270,7 @@
             // Validate against allowlist
             const validCrypto = SUPPORTED_CRYPTOS.includes(crypto) ? crypto : 'BTC';
             const validFiat = SUPPORTED_FIATS.includes(fiat) ? fiat : 'EUR';
-            const validTheme = SUPPORTED_THEMES.includes(theme) ? theme : 'light';
+            const validTheme = SUPPORTED_THEMES.includes(theme) ? theme : 'dark';
             
             // Validate dimensions (min: 100x100, max: 2000x2000)
             const validWidth = Math.min(Math.max(width, 100), 2000);
