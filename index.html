@@ -370,8 +370,8 @@
             if (document.hidden && priceUpdateInterval) {
                 clearInterval(priceUpdateInterval);
                 priceUpdateInterval = null;
-            } else if (!document.hidden) {
-                // Reinitialize when page becomes visible again
+            } else if (!document.hidden && !isInitializing) {
+                // Reinitialize when page becomes visible again (only if not already initializing)
                 initWidget();
             }
         });
