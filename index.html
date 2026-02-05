@@ -130,7 +130,7 @@
     <script>
         // List of supported cryptocurrencies and fiat currencies
         const SUPPORTED_CRYPTOS = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'DOGE', 'SOL', 'DOT', 'MATIC', 'LTC', 'AVAX', 'LINK', 'UNI', 'ATOM', 'XLM', 'USDT', 'USDC'];
-        const SUPPORTED_FIATS = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'KRW', 'BRL', 'USDT', 'BUSD'];
+        const SUPPORTED_FIATS = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'KRW', 'BRL', 'TRY', 'ZAR'];
 
         // Get parameters from URL with validation
         function getUrlParams() {
@@ -176,12 +176,16 @@
                 const data = await response.json();
                 return {
                     price: parseFloat(data.lastPrice),
-                    change: parseFloat(data.priceChangePercent)
+                    change: parseFloat(data.priceChangePercent),
+                    isMock: false
                 };
             } catch (error) {
-                console.error('Error fetching crypto price, using mock data:', error);
-                // Return mock data as fallback
-                return getMockPrice(crypto, fiat);
+                console.warn('Error fetching crypto price, using mock data:', error);
+                // Return mock data as fallback with flag
+                return {
+                    ...getMockPrice(crypto, fiat),
+                    isMock: true
+                };
             }
         }
 
@@ -261,15 +265,14 @@
             
             // Update price every 30 seconds
             priceUpdateInterval = setInterval(async () => {
-                try {
-                    const updatedPriceData = await fetchCryptoPrice(crypto, fiat);
-                    displayWidget(crypto, fiat, updatedPriceData);
-                } catch (error) {
-                    console.error('Error updating price:', error);
-                    // Display error indicator to user
+                const updatedPriceData = await fetchCryptoPrice(crypto, fiat);
+                displayWidget(crypto, fiat, updatedPriceData);
+                
+                // Show error indicator if using mock data
+                if (updatedPriceData.isMock) {
                     const updateTime = document.querySelector('.update-time');
                     if (updateTime) {
-                        updateTime.innerHTML = '<span style="color: #e53e3e;">⚠ Update failed</span>';
+                        updateTime.innerHTML = '<span style="color: #e53e3e;">⚠ Using demo data</span>';
                     }
                 }
             }, 30000);
