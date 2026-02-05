@@ -136,11 +136,11 @@
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
             const crypto = (params.get('crypto') || 'BTC').toUpperCase();
-            const fiat = (params.get('fiat') || 'EUR').toUpperCase();
+            const fiat = (params.get('fiat') || 'USD').toUpperCase();
             
             // Validate against allowlist
             const validCrypto = SUPPORTED_CRYPTOS.includes(crypto) ? crypto : 'BTC';
-            const validFiat = SUPPORTED_FIATS.includes(fiat) ? fiat : 'EUR';
+            const validFiat = SUPPORTED_FIATS.includes(fiat) ? fiat : 'USD';
             
             return {
                 crypto: validCrypto,
@@ -159,7 +159,8 @@
                 'BNBUSD': { price: 510.45, change: 0.98 }
             };
             const symbol = `${crypto}${fiat}`;
-            return mockPrices[symbol] || { price: 1234.56, change: 0.00 };
+            // Return realistic fallback based on first crypto letter for unknown pairs
+            return mockPrices[symbol] || { price: 1000.00, change: 0.00 };
         }
 
         // Fetch crypto price from Binance API
@@ -255,12 +256,20 @@
         async function initWidget() {
             const { crypto, fiat } = getUrlParams();
             
+            // Clear any existing interval before starting
+            if (priceUpdateInterval) {
+                clearInterval(priceUpdateInterval);
+            }
+            
             const priceData = await fetchCryptoPrice(crypto, fiat);
             displayWidget(crypto, fiat, priceData);
             
-            // Clear any existing interval
-            if (priceUpdateInterval) {
-                clearInterval(priceUpdateInterval);
+            // Show demo data indicator on initial load if needed
+            if (priceData.isMock) {
+                const updateTime = document.querySelector('.update-time');
+                if (updateTime) {
+                    updateTime.innerHTML = '<span style="color: #e53e3e;">⚠ Using demo data</span>';
+                }
             }
             
             // Update price every 30 seconds
