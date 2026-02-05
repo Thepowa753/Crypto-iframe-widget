@@ -133,17 +133,17 @@
 
         // List of supported cryptocurrencies and fiat currencies
         const SUPPORTED_CRYPTOS = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'DOGE', 'SOL', 'DOT', 'MATIC', 'LTC', 'AVAX', 'LINK', 'UNI', 'ATOM', 'XLM'];
-        const SUPPORTED_FIATS = ['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'KRW', 'BRL', 'TRY', 'ZAR'];
+        const SUPPORTED_FIATS = ['EUR', 'USD', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'KRW', 'BRL', 'TRY', 'ZAR'];
 
         // Get parameters from URL with validation
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
             const crypto = (params.get('crypto') || 'BTC').toUpperCase();
-            const fiat = (params.get('fiat') || 'USD').toUpperCase();
+            const fiat = (params.get('fiat') || 'EUR').toUpperCase();
             
             // Validate against allowlist
             const validCrypto = SUPPORTED_CRYPTOS.includes(crypto) ? crypto : 'BTC';
-            const validFiat = SUPPORTED_FIATS.includes(fiat) ? fiat : 'USD';
+            const validFiat = SUPPORTED_FIATS.includes(fiat) ? fiat : 'EUR';
             
             return {
                 crypto: validCrypto,
