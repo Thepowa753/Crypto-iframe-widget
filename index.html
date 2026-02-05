@@ -129,7 +129,7 @@
 
     <script>
         // Configuration constants
-        const UPDATE_INTERVAL_MS = 30000; // 30 seconds
+        const UPDATE_INTERVAL = 30000; // 30 seconds
 
         // List of supported cryptocurrencies and fiat currencies
         const SUPPORTED_CRYPTOS = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'DOGE', 'SOL', 'DOT', 'MATIC', 'LTC', 'AVAX', 'LINK', 'UNI', 'ATOM', 'XLM'];
@@ -236,14 +236,17 @@
             const widgetContent = document.getElementById('widget-content');
             const priceChangeClass = priceData.change >= 0 ? 'positive' : 'negative';
             const priceChangeSign = priceData.change >= 0 ? '+' : '';
+            const priceChangeDirection = priceData.change >= 0 ? 'increased' : 'decreased';
             
             // Clear existing content
-            widgetContent.innerHTML = '';
+            widgetContent.replaceChildren();
             
             // Create logo element
             const logo = document.createElement('div');
             logo.className = 'crypto-logo';
             logo.textContent = getCryptoLogo(crypto);
+            logo.setAttribute('role', 'img');
+            logo.setAttribute('aria-label', `${crypto} logo`);
             
             // Create name element
             const name = document.createElement('div');
@@ -264,6 +267,7 @@
             const priceChange = document.createElement('div');
             priceChange.className = `price-change ${priceChangeClass}`;
             priceChange.textContent = `${priceChangeSign}${priceData.change.toFixed(2)}% (24h)`;
+            priceChange.setAttribute('aria-label', `Price ${priceChangeDirection} by ${Math.abs(priceData.change).toFixed(2)} percent in the last 24 hours`);
             
             // Create update time element
             const updateTime = document.createElement('div');
@@ -292,7 +296,7 @@
         // Display error message
         function displayError(message) {
             const widgetContent = document.getElementById('widget-content');
-            widgetContent.innerHTML = '';
+            widgetContent.replaceChildren();
             
             const errorDiv = document.createElement('div');
             errorDiv.className = 'error';
@@ -329,7 +333,7 @@
                     showDemoDataWarning();
                 }
                 
-                // Update price every UPDATE_INTERVAL_MS
+                // Update price every UPDATE_INTERVAL
                 priceUpdateInterval = setInterval(async () => {
                     // Skip if previous update is still in progress
                     if (isUpdating) return;
@@ -346,7 +350,7 @@
                     } finally {
                         isUpdating = false;
                     }
-                }, UPDATE_INTERVAL_MS);
+                }, UPDATE_INTERVAL);
             } finally {
                 isInitializing = false;
             }
