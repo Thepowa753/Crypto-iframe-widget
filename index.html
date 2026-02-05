@@ -343,10 +343,12 @@
                         const updatedPriceData = await fetchCryptoPrice(crypto, fiat);
                         displayWidget(crypto, fiat, updatedPriceData);
                         
-                        // Show error indicator if using mock data
+                        // Show demo data indicator if using mock data
                         if (updatedPriceData.isMock) {
                             showDemoDataWarning();
                         }
+                    } catch (error) {
+                        console.error('Error in update cycle:', error);
                     } finally {
                         isUpdating = false;
                     }
