@@ -250,7 +250,8 @@
         function showDemoDataWarning() {
             const updateTime = document.getElementById('update-time');
             if (updateTime) {
-                updateTime.innerHTML = '<span style="color: #e53e3e;">⚠ Using demo data</span>';
+                updateTime.textContent = '⚠ Using demo data';
+                updateTime.style.color = '#e53e3e';
             }
         }
 
@@ -265,42 +266,52 @@
         // Global interval ID for cleanup
         let priceUpdateInterval = null;
         let isUpdating = false;
+        let isInitializing = false;
 
         // Initialize widget
         async function initWidget() {
-            const { crypto, fiat } = getUrlParams();
+            // Prevent multiple simultaneous initializations
+            if (isInitializing) return;
+            isInitializing = true;
             
-            // Clear any existing interval before starting
-            if (priceUpdateInterval) {
-                clearInterval(priceUpdateInterval);
-            }
-            
-            const priceData = await fetchCryptoPrice(crypto, fiat);
-            displayWidget(crypto, fiat, priceData);
-            
-            // Show demo data indicator on initial load if needed
-            if (priceData.isMock) {
-                showDemoDataWarning();
-            }
-            
-            // Update price every 30 seconds
-            priceUpdateInterval = setInterval(async () => {
-                // Skip if previous update is still in progress
-                if (isUpdating) return;
+            try {
+                const { crypto, fiat } = getUrlParams();
                 
-                isUpdating = true;
-                try {
-                    const updatedPriceData = await fetchCryptoPrice(crypto, fiat);
-                    displayWidget(crypto, fiat, updatedPriceData);
-                    
-                    // Show error indicator if using mock data
-                    if (updatedPriceData.isMock) {
-                        showDemoDataWarning();
-                    }
-                } finally {
-                    isUpdating = false;
+                // Clear any existing interval before starting
+                if (priceUpdateInterval) {
+                    clearInterval(priceUpdateInterval);
+                    priceUpdateInterval = null;
                 }
-            }, 30000);
+                
+                const priceData = await fetchCryptoPrice(crypto, fiat);
+                displayWidget(crypto, fiat, priceData);
+                
+                // Show demo data indicator on initial load if needed
+                if (priceData.isMock) {
+                    showDemoDataWarning();
+                }
+                
+                // Update price every 30 seconds
+                priceUpdateInterval = setInterval(async () => {
+                    // Skip if previous update is still in progress
+                    if (isUpdating) return;
+                    
+                    isUpdating = true;
+                    try {
+                        const updatedPriceData = await fetchCryptoPrice(crypto, fiat);
+                        displayWidget(crypto, fiat, updatedPriceData);
+                        
+                        // Show error indicator if using mock data
+                        if (updatedPriceData.isMock) {
+                            showDemoDataWarning();
+                        }
+                    } finally {
+                        isUpdating = false;
+                    }
+                }, 30000);
+            } finally {
+                isInitializing = false;
+            }
         }
 
         // Start widget on page load
