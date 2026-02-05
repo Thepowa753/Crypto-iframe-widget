@@ -205,7 +205,7 @@
                 'LTC': 'Ł',
                 'AVAX': 'Λ',
                 'LINK': '⬡',
-                'UNI': '🦄',
+                'UNI': 'Ⓤ',
                 'ATOM': '⚛',
                 'XLM': '*'
             };
@@ -242,8 +242,16 @@
                 <div class="price-change ${priceChangeClass}">
                     ${priceChangeSign}${priceData.change.toFixed(2)}% (24h)
                 </div>
-                <div class="update-time">Last updated: ${new Date().toLocaleTimeString()}</div>
+                <div class="update-time" id="update-time">Last updated: ${new Date().toLocaleTimeString()}</div>
             `;
+        }
+
+        // Show demo data warning
+        function showDemoDataWarning() {
+            const updateTime = document.getElementById('update-time');
+            if (updateTime) {
+                updateTime.innerHTML = '<span style="color: #e53e3e;">⚠ Using demo data</span>';
+            }
         }
 
         // Display error message
@@ -256,6 +264,7 @@
 
         // Global interval ID for cleanup
         let priceUpdateInterval = null;
+        let isUpdating = false;
 
         // Initialize widget
         async function initWidget() {
@@ -271,23 +280,25 @@
             
             // Show demo data indicator on initial load if needed
             if (priceData.isMock) {
-                const updateTime = document.querySelector('.update-time');
-                if (updateTime) {
-                    updateTime.innerHTML = '<span style="color: #e53e3e;">⚠ Using demo data</span>';
-                }
+                showDemoDataWarning();
             }
             
             // Update price every 30 seconds
             priceUpdateInterval = setInterval(async () => {
-                const updatedPriceData = await fetchCryptoPrice(crypto, fiat);
-                displayWidget(crypto, fiat, updatedPriceData);
+                // Skip if previous update is still in progress
+                if (isUpdating) return;
                 
-                // Show error indicator if using mock data
-                if (updatedPriceData.isMock) {
-                    const updateTime = document.querySelector('.update-time');
-                    if (updateTime) {
-                        updateTime.innerHTML = '<span style="color: #e53e3e;">⚠ Using demo data</span>';
+                isUpdating = true;
+                try {
+                    const updatedPriceData = await fetchCryptoPrice(crypto, fiat);
+                    displayWidget(crypto, fiat, updatedPriceData);
+                    
+                    // Show error indicator if using mock data
+                    if (updatedPriceData.isMock) {
+                        showDemoDataWarning();
                     }
+                } finally {
+                    isUpdating = false;
                 }
             }, 30000);
         }
