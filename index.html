@@ -202,7 +202,7 @@
             'LINK': { gradient: 'linear-gradient(135deg, #2a5ada 0%, #1e4ab8 100%)', shadow: 'rgba(42, 90, 218, 0.4)' },
             'UNI': { gradient: 'linear-gradient(135deg, #ff007a 0%, #d90063 100%)', shadow: 'rgba(255, 0, 122, 0.4)' },
             'ATOM': { gradient: 'linear-gradient(135deg, #2e3148 0%, #1c1e2e 100%)', shadow: 'rgba(46, 49, 72, 0.4)' },
-            'XLM': { gradient: 'linear-gradient(135deg, #000000 0%, #14141f 100%)', shadow: 'rgba(0, 0, 0, 0.4)' }
+            'XLM': { gradient: 'linear-gradient(135deg, #141414 0%, #2d2d3f 100%)', shadow: 'rgba(20, 20, 20, 0.4)' }
         };
 
         // List of supported cryptocurrencies and fiat currencies
@@ -239,15 +239,19 @@
 
         // Apply theme and dimensions
         function applyThemeAndDimensions(theme, width, height) {
-            // Apply theme
-            document.body.className = theme;
-            document.querySelector('.widget-container').className = `widget-container ${theme}`;
+            // Apply theme using classList
+            document.body.className = ''; // Clear all classes first
+            document.body.classList.add(theme);
+            
+            const container = document.querySelector('.widget-container');
+            container.className = 'widget-container'; // Reset to base class
+            container.classList.add(theme);
             
             // Apply dimensions
             document.body.style.width = `${width}px`;
             document.body.style.height = `${height}px`;
-            document.querySelector('.widget-container').style.width = `${width}px`;
-            document.querySelector('.widget-container').style.height = `${height}px`;
+            container.style.width = `${width}px`;
+            container.style.height = `${height}px`;
         }
 
         // Get crypto colors
