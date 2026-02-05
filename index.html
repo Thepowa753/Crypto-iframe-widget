@@ -13,28 +13,40 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 0;
+            margin: 0;
+        }
+
+        body.light {
+            background: #f7fafc;
+        }
+
+        body.dark {
+            background: #1a202c;
         }
 
         .widget-container {
-            background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
-            padding: 40px;
+            padding: 30px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            max-width: 400px;
             width: 100%;
+            height: 100%;
             text-align: center;
             transition: transform 0.3s ease;
+            overflow: hidden;
         }
 
-        .widget-container:hover {
-            transform: translateY(-5px);
+        .widget-container.light {
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .widget-container.dark {
+            background: rgba(26, 32, 44, 0.95);
         }
 
         .crypto-logo {
@@ -42,58 +54,101 @@
             height: 80px;
             margin: 0 auto 20px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             display: flex;
             justify-content: center;
             align-items: center;
             font-size: 40px;
             color: white;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
         }
 
         .crypto-name {
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 700;
-            color: #2d3748;
             margin-bottom: 10px;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
 
+        .light .crypto-name {
+            color: #2d3748;
+        }
+
+        .dark .crypto-name {
+            color: #e2e8f0;
+        }
+
         .crypto-price {
-            font-size: 48px;
+            font-size: 36px;
             font-weight: 800;
-            color: #667eea;
-            margin: 20px 0;
-            text-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
+            margin: 15px 0;
+        }
+
+        .light .crypto-price {
+            color: #2d3748;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .dark .crypto-price {
+            color: #e2e8f0;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
         }
 
         .fiat-currency {
-            font-size: 20px;
-            color: #718096;
+            font-size: 16px;
             font-weight: 600;
             text-transform: uppercase;
         }
 
-        .loading {
-            font-size: 18px;
+        .light .fiat-currency {
             color: #718096;
+        }
+
+        .dark .fiat-currency {
+            color: #a0aec0;
+        }
+
+        .loading {
+            font-size: 16px;
             animation: pulse 1.5s ease-in-out infinite;
         }
 
+        .light .loading {
+            color: #718096;
+        }
+
+        .dark .loading {
+            color: #a0aec0;
+        }
+
         .error {
-            color: #e53e3e;
-            font-size: 16px;
+            font-size: 14px;
             padding: 15px;
-            background: #fff5f5;
             border-radius: 10px;
             border: 1px solid #feb2b2;
         }
 
+        .light .error {
+            color: #e53e3e;
+            background: #fff5f5;
+        }
+
+        .dark .error {
+            color: #fc8181;
+            background: #2d3748;
+        }
+
         .update-time {
-            font-size: 12px;
+            font-size: 11px;
+            margin-top: 15px;
+        }
+
+        .light .update-time {
             color: #a0aec0;
-            margin-top: 20px;
+        }
+
+        .dark .update-time {
+            color: #718096;
         }
 
         @keyframes pulse {
@@ -106,7 +161,7 @@
         }
 
         .price-change {
-            font-size: 16px;
+            font-size: 14px;
             margin-top: 10px;
             font-weight: 600;
         }
@@ -131,24 +186,73 @@
         // Configuration constants
         const UPDATE_INTERVAL = 30000; // 30 seconds
 
+        // Crypto colors configuration (JSON structure)
+        const CRYPTO_COLORS = {
+            'BTC': { gradient: 'linear-gradient(135deg, #f7931a 0%, #f39c12 100%)', shadow: 'rgba(247, 147, 26, 0.4)' },
+            'ETH': { gradient: 'linear-gradient(135deg, #627eea 0%, #5468e5 100%)', shadow: 'rgba(98, 126, 234, 0.4)' },
+            'BNB': { gradient: 'linear-gradient(135deg, #f3ba2f 0%, #f0b90b 100%)', shadow: 'rgba(243, 186, 47, 0.4)' },
+            'XRP': { gradient: 'linear-gradient(135deg, #23292f 0%, #1a1f24 100%)', shadow: 'rgba(35, 41, 47, 0.4)' },
+            'ADA': { gradient: 'linear-gradient(135deg, #0033ad 0%, #0d1f5a 100%)', shadow: 'rgba(0, 51, 173, 0.4)' },
+            'DOGE': { gradient: 'linear-gradient(135deg, #c2a633 0%, #b59f2e 100%)', shadow: 'rgba(194, 166, 51, 0.4)' },
+            'SOL': { gradient: 'linear-gradient(135deg, #00ffa3 0%, #dc1fff 100%)', shadow: 'rgba(0, 255, 163, 0.4)' },
+            'DOT': { gradient: 'linear-gradient(135deg, #e6007a 0%, #c10061 100%)', shadow: 'rgba(230, 0, 122, 0.4)' },
+            'MATIC': { gradient: 'linear-gradient(135deg, #8247e5 0%, #6c3cbd 100%)', shadow: 'rgba(130, 71, 229, 0.4)' },
+            'LTC': { gradient: 'linear-gradient(135deg, #345d9d 0%, #2a4b7c 100%)', shadow: 'rgba(52, 93, 157, 0.4)' },
+            'AVAX': { gradient: 'linear-gradient(135deg, #e84142 0%, #d13536 100%)', shadow: 'rgba(232, 65, 66, 0.4)' },
+            'LINK': { gradient: 'linear-gradient(135deg, #2a5ada 0%, #1e4ab8 100%)', shadow: 'rgba(42, 90, 218, 0.4)' },
+            'UNI': { gradient: 'linear-gradient(135deg, #ff007a 0%, #d90063 100%)', shadow: 'rgba(255, 0, 122, 0.4)' },
+            'ATOM': { gradient: 'linear-gradient(135deg, #2e3148 0%, #1c1e2e 100%)', shadow: 'rgba(46, 49, 72, 0.4)' },
+            'XLM': { gradient: 'linear-gradient(135deg, #000000 0%, #14141f 100%)', shadow: 'rgba(0, 0, 0, 0.4)' }
+        };
+
         // List of supported cryptocurrencies and fiat currencies
         const SUPPORTED_CRYPTOS = ['BTC', 'ETH', 'BNB', 'XRP', 'ADA', 'DOGE', 'SOL', 'DOT', 'MATIC', 'LTC', 'AVAX', 'LINK', 'UNI', 'ATOM', 'XLM'];
         const SUPPORTED_FIATS = ['EUR', 'USD', 'GBP', 'JPY', 'AUD', 'CAD', 'CHF', 'CNY', 'KRW', 'BRL', 'TRY', 'ZAR'];
+        const SUPPORTED_THEMES = ['light', 'dark'];
 
         // Get parameters from URL with validation
         function getUrlParams() {
             const params = new URLSearchParams(window.location.search);
             const crypto = (params.get('crypto') || 'BTC').toUpperCase();
             const fiat = (params.get('fiat') || 'EUR').toUpperCase();
+            const theme = (params.get('theme') || 'light').toLowerCase();
+            const width = parseInt(params.get('width')) || 300;
+            const height = parseInt(params.get('height')) || 200;
             
             // Validate against allowlist
             const validCrypto = SUPPORTED_CRYPTOS.includes(crypto) ? crypto : 'BTC';
             const validFiat = SUPPORTED_FIATS.includes(fiat) ? fiat : 'EUR';
+            const validTheme = SUPPORTED_THEMES.includes(theme) ? theme : 'light';
+            
+            // Validate dimensions (min: 100x100, max: 2000x2000)
+            const validWidth = Math.min(Math.max(width, 100), 2000);
+            const validHeight = Math.min(Math.max(height, 100), 2000);
             
             return {
                 crypto: validCrypto,
-                fiat: validFiat
+                fiat: validFiat,
+                theme: validTheme,
+                width: validWidth,
+                height: validHeight
             };
+        }
+
+        // Apply theme and dimensions
+        function applyThemeAndDimensions(theme, width, height) {
+            // Apply theme
+            document.body.className = theme;
+            document.querySelector('.widget-container').className = `widget-container ${theme}`;
+            
+            // Apply dimensions
+            document.body.style.width = `${width}px`;
+            document.body.style.height = `${height}px`;
+            document.querySelector('.widget-container').style.width = `${width}px`;
+            document.querySelector('.widget-container').style.height = `${height}px`;
+        }
+
+        // Get crypto colors
+        function getCryptoColors(crypto) {
+            return CRYPTO_COLORS[crypto] || CRYPTO_COLORS['BTC'];
         }
 
         // Mock data for demonstration (fallback when API is not accessible)
@@ -237,13 +341,16 @@
             const priceChangeClass = priceData.change >= 0 ? 'positive' : 'negative';
             const priceChangeSign = priceData.change >= 0 ? '+' : '';
             const priceChangeDirection = priceData.change >= 0 ? 'increased' : 'decreased';
+            const colors = getCryptoColors(crypto);
             
             // Clear existing content
             widgetContent.replaceChildren();
             
-            // Create logo element
+            // Create logo element with crypto-specific colors
             const logo = document.createElement('div');
             logo.className = 'crypto-logo';
+            logo.style.background = colors.gradient;
+            logo.style.boxShadow = `0 10px 30px ${colors.shadow}`;
             logo.textContent = getCryptoLogo(crypto);
             logo.setAttribute('role', 'img');
             logo.setAttribute('aria-label', `${crypto} logo`);
@@ -317,7 +424,10 @@
             isInitializing = true;
             
             try {
-                const { crypto, fiat } = getUrlParams();
+                const { crypto, fiat, theme, width, height } = getUrlParams();
+                
+                // Apply theme and dimensions
+                applyThemeAndDimensions(theme, width, height);
                 
                 // Clear any existing interval before starting
                 if (priceUpdateInterval) {
