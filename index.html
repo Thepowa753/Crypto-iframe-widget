@@ -267,6 +267,7 @@
             const width = parseInt(params.get('width')) || 300;
             const height = parseInt(params.get('height')) || 200;
             const quantity = parseFloat(params.get('quantity')) || 0;
+            const buyPrice = parseFloat(params.get('buyPrice'));
             
             // Validate against allowlist
             const validCrypto = SUPPORTED_CRYPTOS.includes(crypto) ? crypto : 'BTC';
@@ -279,6 +280,8 @@
             
             // Validate quantity (must be positive; 0 or negative means no quantity specified)
             const validQuantity = quantity > 0 ? quantity : 0;
+            // Validate buy price (must be positive; invalid/empty means no buy price specified)
+            const validBuyPrice = buyPrice > 0 ? buyPrice : null;
             
             return {
                 crypto: validCrypto,
@@ -286,7 +289,8 @@
                 theme: validTheme,
                 width: validWidth,
                 height: validHeight,
-                quantity: validQuantity
+                quantity: validQuantity,
+                buyPrice: validBuyPrice
             };
         }
 
@@ -333,7 +337,7 @@
         }
 
         // Fetch crypto price from Binance API
-        async function fetchCryptoPrice(crypto, fiat) {
+        async function fetchCryptoPrice(crypto, fiat, buyPrice = null) {
             try {
                 const symbol = `${crypto}${fiat}`;
                 
@@ -345,32 +349,59 @@
                 const priceData = await priceResponse.json();
                 const currentPrice = parseFloat(priceData.price);
                 
-                // Get price from 30 days ago using klines
-                // Request 31 days of data to ensure we capture the data from 30 days ago
-                const THIRTY_ONE_DAYS_MS = 31 * 24 * 60 * 60 * 1000;
-                const thirtyOneDaysAgo = Date.now() - THIRTY_ONE_DAYS_MS;
-                const klinesResponse = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${thirtyOneDaysAgo}&limit=31`);
-                if (!klinesResponse.ok) {
-                    throw new Error(`Failed to fetch historical price for ${crypto}/${fiat}`);
+                let percentChange;
+                let valueDifference = null;
+                let changePeriodLabel = '30d';
+
+                if (buyPrice) {
+                    // Calculate change from buy price
+                    percentChange = ((currentPrice - buyPrice) / buyPrice) * 100;
+                    valueDifference = currentPrice - buyPrice;
+                    changePeriodLabel = 'vs buy';
+                } else {
+                    // Get price from 30 days ago using klines
+                    // Request 31 days of data to ensure we capture the data from 30 days ago
+                    const THIRTY_ONE_DAYS_MS = 31 * 24 * 60 * 60 * 1000;
+                    const thirtyOneDaysAgo = Date.now() - THIRTY_ONE_DAYS_MS;
+                    const klinesResponse = await fetch(`https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=1d&startTime=${thirtyOneDaysAgo}&limit=31`);
+                    if (!klinesResponse.ok) {
+                        throw new Error(`Failed to fetch historical price for ${crypto}/${fiat}`);
+                    }
+                    const klinesData = await klinesResponse.json();
+                    
+                    // Extract opening price (field index 1) from the first kline entry which represents ~30 days ago
+                    const oldPrice = parseFloat(klinesData[0][1]);
+                    
+                    // Calculate percentage change manually
+                    percentChange = ((currentPrice - oldPrice) / oldPrice) * 100;
                 }
-                const klinesData = await klinesResponse.json();
-                
-                // Extract opening price (field index 1) from the first kline entry which represents ~30 days ago
-                const oldPrice = parseFloat(klinesData[0][1]);
-                
-                // Calculate percentage change manually
-                const percentChange = ((currentPrice - oldPrice) / oldPrice) * 100;
                 
                 return {
                     price: currentPrice,
                     change: percentChange,
+                    valueDifference: valueDifference,
+                    changePeriodLabel: changePeriodLabel,
                     isMock: false
                 };
             } catch (error) {
                 console.warn('Error fetching crypto price, using mock data:', error);
                 // Return mock data as fallback with flag
+                const mockData = getMockPrice(crypto, fiat);
+                if (buyPrice) {
+                    const mockValueDifference = mockData.price - buyPrice;
+                    const mockPercentChange = ((mockData.price - buyPrice) / buyPrice) * 100;
+                    return {
+                        ...mockData,
+                        change: mockPercentChange,
+                        valueDifference: mockValueDifference,
+                        changePeriodLabel: 'vs buy',
+                        isMock: true
+                    };
+                }
                 return {
-                    ...getMockPrice(crypto, fiat),
+                    ...mockData,
+                    valueDifference: null,
+                    changePeriodLabel: '30d',
                     isMock: true
                 };
             }
@@ -471,8 +502,15 @@
             // Create price change element
             const priceChange = document.createElement('div');
             priceChange.className = `price-change ${priceChangeClass}`;
-            priceChange.textContent = `${priceChangeSign}${priceData.change.toFixed(2)}% (30d)`;
-            priceChange.setAttribute('aria-label', `Price ${priceChangeDirection} by ${Math.abs(priceData.change).toFixed(2)} percent in the last 30 days`);
+            if (priceData.valueDifference !== null) {
+                const absoluteDiffSign = priceData.valueDifference >= 0 ? '+' : '-';
+                const absoluteDiffText = `${absoluteDiffSign}${formatPrice(Math.abs(priceData.valueDifference), fiat)} ${getFiatSymbol(fiat)}`;
+                priceChange.textContent = `${priceChangeSign}${priceData.change.toFixed(2)}% (${absoluteDiffText})`;
+                priceChange.setAttribute('aria-label', `Price ${priceChangeDirection} by ${Math.abs(priceData.change).toFixed(2)} percent since buy price with an absolute difference of ${absoluteDiffText}`);
+            } else {
+                priceChange.textContent = `${priceChangeSign}${priceData.change.toFixed(2)}% (${priceData.changePeriodLabel || '30d'})`;
+                priceChange.setAttribute('aria-label', `Price ${priceChangeDirection} by ${Math.abs(priceData.change).toFixed(2)} percent in the last 30 days`);
+            }
             
             // Create portfolio value element if quantity is specified
             let portfolioValue = null;
@@ -534,7 +572,7 @@
             isInitializing = true;
             
             try {
-                const { crypto, fiat, theme, width, height, quantity } = getUrlParams();
+                const { crypto, fiat, theme, width, height, quantity, buyPrice } = getUrlParams();
                 
                 // Apply theme and dimensions
                 applyThemeAndDimensions(theme, width, height);
@@ -545,7 +583,7 @@
                     priceUpdateInterval = null;
                 }
                 
-                const priceData = await fetchCryptoPrice(crypto, fiat);
+                const priceData = await fetchCryptoPrice(crypto, fiat, buyPrice);
                 displayWidget(crypto, fiat, priceData, quantity);
                 
                 // Show demo data indicator on initial load if needed
@@ -560,7 +598,7 @@
                     
                     isUpdating = true;
                     try {
-                        const updatedPriceData = await fetchCryptoPrice(crypto, fiat);
+                        const updatedPriceData = await fetchCryptoPrice(crypto, fiat, buyPrice);
                         displayWidget(crypto, fiat, updatedPriceData, quantity);
                         
                         // Show demo data indicator if using mock data

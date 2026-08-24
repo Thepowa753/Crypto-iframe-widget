@@ -33,6 +33,7 @@ Embed the widget using an iframe with URL parameters to customize its appearance
 | `width` | Widget width in pixels | `300` | `100` - `2000` |
 | `height` | Widget height in pixels | `200` | `100` - `2000` |
 | `quantity` | Amount of crypto owned (shows portfolio value) | `0` | Any positive number |
+| `buyPrice` | Your buy price per coin (shows % change and absolute difference vs buy price) | none | Any positive number |
 
 ### Examples
 
