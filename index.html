@@ -232,6 +232,7 @@
     <script>
         // Configuration constants
         const UPDATE_INTERVAL = 30000; // 30 seconds
+        let purchasedQuantity = 0;
 
         // Crypto colors configuration (JSON structure)
         const CRYPTO_COLORS = {
@@ -268,6 +269,7 @@
             const height = parseInt(params.get('height')) || 200;
             const quantity = parseFloat(params.get('quantity')) || 0;
             const buyPrice = parseFloat(params.get('buyPrice'));
+            purchasedQuantity = quantity; // Store purchased quantity for later use
             
             // Validate against allowlist
             const validCrypto = SUPPORTED_CRYPTOS.includes(crypto) ? crypto : 'BTC';
@@ -356,7 +358,7 @@
                 if (buyPrice) {
                     // Calculate change from buy price
                     percentChange = ((currentPrice - buyPrice) / buyPrice) * 100;
-                    valueDifference = currentPrice - buyPrice;
+                    valueDifference = (currentPrice - buyPrice) * purchasedQuantity;
                     changePeriodLabel = 'vs buy';
                 } else {
                     // Get price from 30 days ago using klines
