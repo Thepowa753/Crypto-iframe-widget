@@ -358,7 +358,7 @@
                 if (buyPrice) {
                     // Calculate change from buy price
                     percentChange = ((currentPrice - buyPrice) / buyPrice) * 100;
-                    valueDifference = (currentPrice - buyPrice) * purchasedQuantity;
+                    valueDifference = ((currentPrice - buyPrice) * purchasedQuantity).toFixed(2);;
                     changePeriodLabel = 'vs buy';
                 } else {
                     // Get price from 30 days ago using klines
